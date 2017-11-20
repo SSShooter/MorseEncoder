@@ -1,10 +1,4 @@
 var inquirer = require('inquirer')
-const readline = require('readline')
-
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-})
 
 const title = `\nWelcome To Morse Converter\n`
 const morseCode = {
@@ -18,12 +12,25 @@ const morseCode = {
   6: '−····',
   7: '−−···',
   8: '−−−··',
-  9: '−−−-·',
+  9: '−−−−·',
   "'": '·−−−−·',
   ',': '−−··−−',
   '.': '·−·−·−',
-  ':': '−−−···',
   '?': '··−−··',
+  '!': '−·−·−−',
+  '/': '−··−·',
+  '(': '−·−−·',
+  ')': '−·−−·−',
+  '&': '·−···',
+  ':': '−−−···',
+  ';': '−·−·−·',
+  '=': '−···−',
+  '+': '·−·−·',
+  '-': '−····−',
+  _: '··−−·−',
+  '"': '·−··−·',
+  $: '···−··−',
+  '@': '·−−·−·',
   A: '·−',
   B: '−···',
   C: '−·−·',
@@ -51,6 +58,7 @@ const morseCode = {
   Y: '−·−−',
   Z: '−−··'
 }
+
 let morseCodeOnOff = {}
 for (val in morseCode) {
   morseCodeOnOff[val] = morseCode[val]
@@ -61,75 +69,89 @@ for (val in morseCode) {
     .replace(/\s/g, '.')
 }
 morseCodeOnOff[' '] = '.'
-let preOutput = []
-let reg = /^[\d\s\w:.,?]*$/
 
-// plan1 sync
-// rl.question('input origin ', answer => {
-//   answer = answer.toUpperCase()
-//   if (!reg.test(answer)) {
-//     console.log('含有非法字符')
-//     rl.close()
-//     return false
-//   }
-//   for (i in answer) {
-//     preOutput.push(morseCode[answer.charAt(i)])
-//   }
-//   console.log(preOutput.join('/'))
-//   rl.close()
-// })
+let morseCodeOnOff10 = {}
+for (val in morseCode) {
+  morseCodeOnOff10[val] = morseCodeOnOff[val]
+    .replace(/=/g, '1')
+    .replace(/\./g, '0')
+}
+
+let morseCodeDiDah = {}
+for (val in morseCode) {
+  morseCodeDiDah[val] = morseCode[val]
+    .split('')
+    .join(' ')
+    .replace(/−/g, 'dah')
+    .replace(/·$/g, 'dit')
+    .replace(/·/g, 'di')
+    .replace(/\s/g, '-')
+}
+morseCodeDiDah[' '] = ','
 
 questionPromisify = question =>
   new Promise((resolve, reject) => {
-    rl.question(question, answer => {
-      resolve(answer)
-    })
+    inquirer
+      .prompt(question)
+      .then(answers => {
+        resolve(answers)
+      })
+      .catch(err => {
+        reject(err)
+      })
   })
 
-// plan2 promise
-// questionPromisify('请输入原文:')
-//   .then(answer => {
-//     if (!reg.test(answer)) {
-//       console.log('含有非法字符')
-//       return false
-//       rl.close()
-//     }
-//     answer = answer.toUpperCase()
-//     for (i in answer) {
-//       preOutput.push(morseCode[answer.charAt(i)])
-//     }
-//     return questionPromisify('请输入分割符（推荐/或空格）:')
-//   })
-//   .then(answer => {
-//     console.log(preOutput.join(answer))
-//     rl.close()
-//   })
-
-// plan3 async await
-asyncAwaitPlan = async () => {
-  console.log(title)
-  let origin = await questionPromisify('请输入原文:')
-  if (!reg.test(origin)) {
-    console.log('含有非法字符')
-    return asyncAwaitPlan()
+let encoderPrototype = (origin, morseCodetable, glue) => {
+  let preOutput = []
+  for (i of origin) {
+    preOutput.push(morseCodetable[i])
   }
-  origin = origin.toUpperCase()
-  let representation = await questionPromisify('representation:')
-  if (representation === 'normal') {
-    let separator = (await questionPromisify('请输入分割符（默认空格）:')) || ' '
-    for (i of origin) {
-      preOutput.push(morseCode[i])
-      var output = preOutput.join(' ')
-    }
-  } else {
-    for (i of origin) {
-      preOutput.push(morseCodeOnOff[i])
-      var output = preOutput.join('...')
-    }
-  }
-
-  console.log(output)
-  rl.close()
+  return preOutput.join(glue)
 }
 
-asyncAwaitPlan()
+const encoder = async () => {
+  let output = ''
+  let reg = /^[\d\s\w:.,=+-/'"?&$$@]*$/
+  console.log(title)
+  let answers = await questionPromisify([
+    {
+      type: 'input',
+      name: 'originalText',
+      default: 'test',
+      message: 'Input original text:'
+    },
+    {
+      type: 'list',
+      name: 'representation',
+      default: 'normal',
+      message: 'Representation:',
+      choices: ['normal', 'spoken', 'onoff(=&.)', 'onoff(1&0)']
+    }
+  ])
+  let origin = answers.originalText
+  let representation = answers.representation
+  if (!reg.test(origin)) {
+    console.log('Contain illegal characters')
+    return encoder()
+  }
+  origin = origin.toUpperCase().trim()
+  /*
+   * representation
+   *   normal : −·(default)
+   *   spoken : di-dah
+   *   onoff=.  : = representing "signal on", and . representing "signal off"
+   *   onoff10  : 1 representing "signal on", and 0 representing "signal off"
+   */
+  if (representation === 'normal') {
+    output = encoderPrototype(origin, morseCode, ' ')
+  } else if (representation === 'spoken') {
+    output = encoderPrototype(origin, morseCodeDiDah, ' ')
+  } else if (representation === 'onoff(=&.)') {
+    output = encoderPrototype(origin, morseCodeOnOff, '...')
+  } else {
+    output = encoderPrototype(origin, morseCodeOnOff10, '000')
+  }
+  console.log(output)
+}
+
+encoder()

@@ -1,3 +1,12 @@
+Reference
+https://en.wikipedia.org/wiki/Morse_code
+
+short mark, dot or "dit" : 1
+longer mark, dash or "dah" : 111
+intra-character gap (between the dots and dashes within a character): 0
+short gap (between letters): 000
+medium gap (between words): 0000000
+
 . 和 - 写（读）作
 "dots" 和 "dashes"
 "dits" 和 "dahs",

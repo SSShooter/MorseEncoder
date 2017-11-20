@@ -4,6 +4,7 @@
   "description": "a Morse code converter",
   "main": "Morse.js",
   "scripts": {
+    "morse" : "node Morse",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
