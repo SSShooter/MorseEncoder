@@ -2,7 +2,7 @@ var inquirer = require('inquirer')
 
 const title = `\nWelcome To Morse Converter\n`
 const morseCode = {
-  ' ': '     ',
+  ' ': '     ',// 5 whitespace
   0: '−−−−−',
   1: '·−−−−',
   2: '··−−−',
@@ -68,6 +68,7 @@ for (val in morseCode) {
     .replace(/·/g, '=')
     .replace(/\s/g, '.')
 }
+// medium gap 7 times = short gap 3 times * 2 + ' ' 1 time
 morseCodeOnOff[' '] = '.'
 
 let morseCodeOnOff10 = {}
@@ -111,7 +112,7 @@ let encoderPrototype = (origin, morseCodetable, glue) => {
 
 const encoder = async () => {
   let output = ''
-  let reg = /^[\d\s\w:.,=+-/'"?&$$@]*$/
+  let reg = /^[\d\s\w:.,=+-/'"?&$$@!]*$/
   console.log(title)
   let answers = await questionPromisify([
     {
