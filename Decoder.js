@@ -1,21 +1,64 @@
-// import decoder from './decodeTable.js'
-const decoders = require('./decodeTable.js')
-let input1 = '− · ··· −'
-let input2 = 'dah-dah dit di-dah-dah , dah-dah dit di-dah-dah di-di-dah-dah-di-dit di-di-dah-dah-di-dit'
-let input3 = '=.=.=.=...=...=.===.=.=...=.===.=.=...===.===.=.=.===.===.......=.=...===...=.===.===.===.===.=...=.=.=.......===.===...='
-let input4 = '111000100010101000111000000010111011100010101010001010001110001000101010001011101110100010111000111010111010001'
-decoder = (input, decodeTable, separator) => {
+const inquirer = require('inquirer')
+const decodeTable = require('./decodeTable.js')
+
+questionPromisify = question =>
+  new Promise((resolve, reject) => {
+    inquirer
+      .prompt(question)
+      .then(answers => {
+        resolve(answers)
+      })
+      .catch(err => {
+        reject(err)
+      })
+  })
+
+let decoder = (input, decodeTable, separator) => {
   let array = input.trim().split(separator)
   let preOutput = array.map(val => {
     return decodeTable[val]
   })
-  return preOutput
+  return preOutput.join('')
 }
 
-// console.log(decoder(input1, decoders.normal, ' '))
+let onoffDecoder = (input, decodeTable) => {
+  input = input
+    .trim()
+    .replace(/\./g, '0')
+    .replace(/=/g, '1')
+  let array = input.replace(/0000000/g, '000 000').split('000')
+  let preOutput = array.map(val => {
+    return decodeTable[val]
+  })
+  return preOutput.join('')
+}
 
-// console.log(decoder(input2, decoders.diDah, ' '))
+let runDecoder = async () => {
+  let output = ''
+  let answers = await questionPromisify([
+    {
+      type: 'input',
+      name: 'originalText',
+      message: 'Input original text:'
+    },
+    {
+      type: 'list',
+      name: 'representation',
+      default: 'normal',
+      message: 'Representation:',
+      choices: ['normal', 'spoken', 'onoff']
+    }
+  ])
+  let origin = answers.originalText
+  let representation = answers.representation
+  if (representation === 'normal') {
+    output = decoder(origin, decodeTable.normal, ' ')
+  } else if (representation === 'spoken') {
+    output = decoder(origin, decodeTable.diDah, ' ')
+  } else if (representation === 'onoff') {
+    output = onoffDecoder(origin, decodeTable.onoff10)
+  }
+  console.log(output)
+}
 
-console.log(decoder(input3, decoders.onoff, '...'))
-
-// console.log(decoder(input4, decoders.onoff10, '000'))
+runDecoder()

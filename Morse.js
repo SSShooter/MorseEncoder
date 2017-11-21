@@ -1,4 +1,4 @@
-var inquirer = require('inquirer')
+const inquirer = require('inquirer')
 
 const title = `\nWelcome To Morse Converter\n`
 const morseCode = {
@@ -110,7 +110,7 @@ let encoderPrototype = (origin, morseCodetable, glue) => {
   return preOutput.join(glue)
 }
 
-const encoder = async () => {
+const runEncoder = async () => {
   let output = ''
   let reg = /^[\d\s\w:.,=+-/'"?&$$@!]*$/
   console.log(title)
@@ -129,13 +129,12 @@ const encoder = async () => {
       choices: ['normal', 'spoken', 'onoff(=&.)', 'onoff(1&0)']
     }
   ])
-  let origin = answers.originalText
+  let origin = answers.originalText.toUpperCase().trim()
   let representation = answers.representation
   if (!reg.test(origin)) {
     console.log('Contain illegal characters')
-    return encoder()
+    return runEncoder()
   }
-  origin = origin.toUpperCase().trim()
   /*
    * representation
    *   normal : −·(default)
@@ -155,4 +154,4 @@ const encoder = async () => {
   console.log(output)
 }
 
-encoder()
+runEncoder()
