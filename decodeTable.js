@@ -56,7 +56,6 @@ const normal = {
   '−−··': 'Z'
 }
 
-
 const diDah = {
   'dah-dah-dah-dah-dah': '0',
   'di-dah-dah-dah-dah': '1',
@@ -173,10 +172,8 @@ const onoff10 = {
   '11101110101': 'Z'
 }
 
-const decode = {
+module.exports = {
   normal,
   onoff10,
   diDah
 }
-
-module.exports = decode
